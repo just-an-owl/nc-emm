@@ -10,14 +10,19 @@ namespace nc_emm
         {
             string testeble = null;
             string referens = null;
+            bool triplet_mode = false;
             int bins = -1;
             Matrix_interactions matrix;
             // Проверка наличия аргументов
             if (args.Length == 0)
             {
+                CombineNonCodChain combine = new CombineNonCodChain();
+                combine.readAndWrite("seq_1kk_6000_random_2_-erna.txt", "background_1kk_6000_random.tsv");
+                /*
                 Console.WriteLine("Используется режжим тестового запуска на стандартных параметрах. Используйте -h чтобы увидеть справку о параметрах работы программы.");
-                matrix = new Matrix_interactions("seq.txt", "applyModel_promoterRegions.txt", 10000);
+                matrix = new Matrix_interactions("seq.txt", "seq_500k_700_random_2.txt", 10000, true);
                 return;
+                */
             }
 
             for (int i = 0; i < args.Length; i++)
@@ -53,6 +58,12 @@ namespace nc_emm
                             bins = Convert.ToInt32(args[++i]);
                         }
                         break;
+                    case "--triplet":
+                        if (i + 1 < args.Length)
+                        {
+                            triplet_mode = Convert.ToBoolean(args[++i]);
+                        }
+                        break;
                     default:
                         Console.WriteLine($"Неизвестный параметр: {args[i]}");
                         break;
@@ -60,7 +71,7 @@ namespace nc_emm
             }
             if (referens != null && testeble != null && bins > 0)
             {
-                matrix = new Matrix_interactions(referens, testeble, bins);
+                matrix = new Matrix_interactions(referens, testeble, bins, triplet_mode);
             }
             else
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 
 
@@ -27,7 +28,7 @@ namespace nc_emm
         private double max_prom = 0;
         public Matrix_interactions(List<NucleotidChain> nucleotidChains) => _referens = new List<NucleotidChain>(nucleotidChains);
         public Matrix_interactions() { }
-        public Matrix_interactions(string referens_path, string testeble_path, int bins)//готовый пайплайн работы проекта
+        public Matrix_interactions(string referens_path, string testeble_path, int bins, bool triplet_mode)//готовый пайплайн работы проекта
         {
             Stopwatch stopwatch = new Stopwatch();
 
@@ -149,8 +150,8 @@ namespace nc_emm
             this.referens_Bins.writeToFile(dir_path + "/ReferensBins.tsv");
             this.testable_Bins.writeToFile(dir_path + "/TestableBins.tsv");
 
-            this.writeToFileData(dir_path + "/ReferensData.tsv", 0);
-            this.writeToFileData(dir_path + "/TestableCircuitsData.tsv", 1);
+            this.writeToFileData(dir_path + "/ReferensData.tsv", 0, triplet_mode);
+            this.writeToFileData(dir_path + "/TestableCircuitsData.tsv", 1, triplet_mode);
 
             stopwatch.Stop();
             timeSpan = stopwatch.Elapsed;
@@ -672,33 +673,76 @@ namespace nc_emm
 
 
         //функции записи
-        public void writeToFileData(string path, int mode)
+        public void writeToFileData(string path, int mode, bool triplet_mod)
         {
-            if ( mode == 0)
+            if (triplet_mod)
             {
-                using (StreamWriter writer = new StreamWriter(path, false))
+                if (mode == 0)
                 {
-                    writer.WriteLine("Name\tLength\tMarkov_score\tEuclidean_score\tAA\tAC\tAT\tAG\tCA\tCC\tCT\tCG\tTA\tTC\tTT\tTG\tGA\tGC\tGT\tGG" +
-                        "\tAAA\tAAC\tAAT\tAAG\tACA\tACC\tACT\tACG\tATA\tATC\tATT\tATG\tAGA\tAGC\tAGT\tAGG\tCAA\tCAC\tCAT\tCAG\tCCA\tCCC\tCCT\tCCG\tCTA\tCTC\tCTT\tCTG\tCGA\tCGC\tCGT\tCGG\tTAA\tTAC\tTAT\tTAG\tTCA\tTCC\tTCT\tTCG\tTTA\tTTC\tTTT\tTTG\tTGA\tTGC\tTGT\tTGG\tGAA\tGAC\tGAT\tGAG\tGCA\tGCC\tGCT\tGCG\tGTA\tGTC\tGTT\tGTG\tGGA\tGGC\tGGT\tGGG");
-                    for (int i = 0; i < this._referens.Count; i++)
+                    using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8, bufferSize: 1024 * 1024 * 4))
                     {
-                        writer.WriteLine(_referens[i].get_data_to_string());
+                        writer.WriteLine("Name\tLength\tMarkov_score\tEuclidean_score\tAA\tAC\tAT\tAG\tCA\tCC\tCT\tCG\tTA\tTC\tTT\tTG\tGA\tGC\tGT\tGG" +
+                            "\tAAA\tAAC\tAAT\tAAG\tACA\tACC\tACT\tACG\tATA\tATC\tATT\tATG\tAGA\tAGC\tAGT\tAGG\tCAA\tCAC\tCAT\tCAG\tCCA\tCCC\tCCT\tCCG\tCTA\tCTC\tCTT\tCTG\tCGA\tCGC\tCGT\tCGG\tTAA\tTAC\tTAT\tTAG\tTCA\tTCC\tTCT\tTCG\tTTA\tTTC\tTTT\tTTG\tTGA\tTGC\tTGT\tTGG\tGAA\tGAC\tGAT\tGAG\tGCA\tGCC\tGCT\tGCG\tGTA\tGTC\tGTT\tGTG\tGGA\tGGC\tGGT\tGGG");
+                        for (int i = 0; i < this._referens.Count; i++)
+                        {
+                            writer.WriteLine(_referens[i].get_data_to_string(triplet_mod));
+                            if (i % 1000 == 0)
+                            {
+                                Console.WriteLine("It was recorded: " + i.ToString());
+                            }
+                        }
+                    }
+                }
+                if (mode == 1)
+                {
+                    using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8, bufferSize: 1024 * 1024 * 4))
+                    {
+                        writer.WriteLine("Name\tLength\tMarkov_score\tEuclidean_score\tAA\tAC\tAT\tAG\tCA\tCC\tCT\tCG\tTA\tTC\tTT\tTG\tGA\tGC\tGT\tGG" +
+                            "\tAAA\tAAC\tAAT\tAAG\tACA\tACC\tACT\tACG\tATA\tATC\tATT\tATG\tAGA\tAGC\tAGT\tAGG\tCAA\tCAC\tCAT\tCAG\tCCA\tCCC\tCCT\tCCG\tCTA\tCTC\tCTT\tCTG\tCGA\tCGC\tCGT\tCGG\tTAA\tTAC\tTAT\tTAG\tTCA\tTCC\tTCT\tTCG\tTTA\tTTC\tTTT\tTTG\tTGA\tTGC\tTGT\tTGG\tGAA\tGAC\tGAT\tGAG\tGCA\tGCC\tGCT\tGCG\tGTA\tGTC\tGTT\tGTG\tGGA\tGGC\tGGT\tGGG");
+                        for (int i = 0; i < this._testable_circuits.Count; i++)
+                        {
+                            writer.WriteLine(_testable_circuits[i].get_data_to_string(triplet_mod));
+                            if (i % 1000 == 0)
+                            {
+                                Console.WriteLine("It was recorded: " + i.ToString());
+                            }
+                        }
                     }
                 }
             }
-            if( mode == 1)
+            else
             {
-                using (StreamWriter writer = new StreamWriter(path, false))
+                if (mode == 0)
                 {
-                    writer.WriteLine("Name\tLength\tMarkov_score\tEuclidean_score\tAA\tAC\tAT\tAG\tCA\tCC\tCT\tCG\tTA\tTC\tTT\tTG\tGA\tGC\tGT\tGG"+
-                        "\tAAA\tAAC\tAAT\tAAG\tACA\tACC\tACT\tACG\tATA\tATC\tATT\tATG\tAGA\tAGC\tAGT\tAGG\tCAA\tCAC\tCAT\tCAG\tCCA\tCCC\tCCT\tCCG\tCTA\tCTC\tCTT\tCTG\tCGA\tCGC\tCGT\tCGG\tTAA\tTAC\tTAT\tTAG\tTCA\tTCC\tTCT\tTCG\tTTA\tTTC\tTTT\tTTG\tTGA\tTGC\tTGT\tTGG\tGAA\tGAC\tGAT\tGAG\tGCA\tGCC\tGCT\tGCG\tGTA\tGTC\tGTT\tGTG\tGGA\tGGC\tGGT\tGGG");
-                    for (int i = 0; i < this._testable_circuits.Count; i++)
+                    using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8, bufferSize: 1024*1024*4))
                     {
-                        writer.WriteLine(_referens[i].get_data_to_string());
+                        writer.WriteLine("Name\tLength\tMarkov_score\tEuclidean_score\tAA\tAC\tAT\tAG\tCA\tCC\tCT\tCG\tTA\tTC\tTT\tTG\tGA\tGC\tGT\tGG");
+                        for (int i = 0; i < this._referens.Count; i++)
+                        {
+                            writer.WriteLine(_referens[i].get_data_to_string(triplet_mod));
+                            if (i % 1000 == 0) 
+                            {
+                                Console.WriteLine("It was recorded: "+i.ToString());
+                            }
+                        }
+                    }
+                }
+                if (mode == 1)
+                {
+                    using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8, bufferSize: 1024 * 1024 * 4))
+                    {
+                        writer.WriteLine("Name\tLength\tMarkov_score\tEuclidean_score\tAA\tAC\tAT\tAG\tCA\tCC\tCT\tCG\tTA\tTC\tTT\tTG\tGA\tGC\tGT\tGG");
+                        for (int i = 0; i < this._testable_circuits.Count; i++)
+                        {
+                            writer.WriteLine(_testable_circuits[i].get_data_to_string(triplet_mod));
+                            if (i % 1000 == 0)
+                            {
+                                Console.WriteLine("It was recorded: " + i.ToString());
+                            }
+                        }
                     }
                 }
             }
-            
         }
 
         public void writeToFileEnhancerScore(string path)

@@ -643,7 +643,7 @@ namespace nc_emm
         {
             return this.Frequency_matrix;
         }
-        public string get_data_to_string()
+        public string get_data_to_string(bool triplet_mod)
         {
             string answer = "";
 
@@ -659,7 +659,7 @@ namespace nc_emm
                     answer += this.Frequency_matrix[i, j].ToString(CultureInfo.CreateSpecificCulture("en-GB"));
                 }
             }
-
+            if(triplet_mod)
             for (int i = 0; i < 16; i++)
             {
                 for (int j = 0; j < 4; j++)
